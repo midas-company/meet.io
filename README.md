@@ -1,28 +1,126 @@
-# Create T3 App
+<div id="top"></div>
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+[![Stargazers][stars-shield]][stars-url]
+[![MIT License][license-shield]][license-url]
 
-## What's next? How do I make an app with this?
+<br />
+<div align="center">
+  <a href="https://github.com/midas-company/meet.io">
+    <img src=".docs/logo.jpg" alt="Logo" width="125" height="125">
+  </a>
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+  <h3 align="center">Meet.io</h3>
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+  <p align="center">
+    All in one destination for COVID-19 health queries.
+    <br />
+    <a href="https://github.com/midas-company/meet.io"><strong>Explore the docs »</strong></a>
+    <br />
+    <br />
+    <a href="https://github.com/midas-company/meet.io">View Demo</a>
+    ·
+    <a href="https://github.com/midas-company/meet.io/issues">Report Bug</a>
+    ·
+    <a href="https://github.com/midas-company/meet.io/issues">Request Feature</a>
+  </p>
+</div>
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li>
+      <a href="#about-the-project">About The Project</a>
+      <ul>
+        <li><a href="#built-with">Built With</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#getting-started">Getting Started</a>
+      <ul>
+        <li><a href="#installation">Installation</a></li>
+      </ul>
+    </li>
+    <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#license">License</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="#acknowledgments">Acknowledgments</a></li>
+  </ol>
+</details>
 
-## Learn More
+## About The Project
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+[![Meet.io][product-screenshot]](https://example.com)
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+<p align="right">(<a href="#top">back to top</a>)</p>
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+### Built With
 
-## How do I deploy this?
+- [Next.js](https://nextjs.org/)
+- [NextAuth.js](https://next-auth.js.org/)
+- [Prisma](https://www.prisma.io/)
+- [React.js](https://reactjs.org/)
+- [Tailwindcss](https://tailwindcss.com/)
+- [Typescript](https://www.typescriptlang.org/)
+- [Trpc](https://trpc.io/)
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+## Getting Started
+
+This is an example of how you may give instructions on setting up your project locally.
+To get a local copy up and running follow these simple example steps.
+
+### Installation
+
+1. Clone the repo
+   ```sh
+   git clone https://github.com/midas-company/meet.io.git
+   ```
+2. Install PNPM packages
+   ```sh
+   pnpm install
+   ```
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+## Contributing
+
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+Don't forget to give the project a star! Thanks again!
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Create the Tests
+4. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+5. Push to the Branch (`git push origin feature/AmazingFeature`)
+6. Open a Pull Request
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+## License
+
+Distributed under the MIT License. See `LICENSE.txt` for more information.
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+## Contact
+
+Project Link: [https://gocorona.vercel.app](https://gocorona.vercel.app)
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+## Acknowledgments
+
+<!-- - [@Ganesh Sekhar](https://dribbble.com/ganeshsekhar) - for making the Figma model available. -->
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+[stars-shield]: https://img.shields.io/github/stars/NatanTavares/GoCorona.svg?style=for-the-badge
+[stars-url]: https://github.com/midas-company/meet.io/stargazers
+[license-shield]: https://img.shields.io/github/license/NatanTavares/GoCorona?style=for-the-badge
+[license-url]: https://github.com/midas-company/meet.io/blob/main/LICENSE
+[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
+[linkedin-url]: https://www.linkedin.com/in/natan-tavares/
+[product-screenshot]: .docs/product-screenshot.jpeg
