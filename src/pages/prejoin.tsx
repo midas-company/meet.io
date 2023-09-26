@@ -17,17 +17,37 @@ export default function Prejoin() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
-    async function fetchDevices() {
+    async function fetchVideoDevices() {
+      try {
+        const videoStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+        } as MediaStreamConstraints);
+
+        const devices = await navigator.mediaDevices.enumerateDevices();
+
+        const videoDevices = devices
+          .filter((device) => device.kind === "videoinput")
+          .map((device) => ({
+            label: device.label,
+            value: device.deviceId,
+          }));
+
+        setVideoDevices(videoDevices);
+        setVideoStream(videoStream);
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = videoStream;
+        }
+      } catch (error) {
+        console.error("Erro ao acessar dispositivos de video:", error);
+      }
+    }
+
+    async function fetchAudioDevices() {
       try {
         const audioStream = await navigator.mediaDevices.getUserMedia({
           audio: true,
-          video: false,
-        });
-
-        const videoStream = await navigator.mediaDevices.getUserMedia({
-          audio: false,
-          video: true,
-        });
+        } as MediaStreamConstraints);
 
         const devices = await navigator.mediaDevices.enumerateDevices();
 
@@ -45,37 +65,24 @@ export default function Prejoin() {
             value: device.deviceId,
           }));
 
-        const videoDevices = devices
-          .filter((device) => device.kind === "videoinput")
-          .map((device) => ({
-            label: device.label,
-            value: device.deviceId,
-          }));
-
         setAudioDevices(audioInputDevices);
         setOutputDevices(outputDevices);
-        setVideoDevices(videoDevices);
 
         setAudioStream(audioStream);
-        setVideoStream(videoStream);
 
         if (audioRef.current) {
           audioRef.current.srcObject = audioStream;
         }
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = videoStream;
-        }
       } catch (error) {
-        console.error("Erro ao acessar dispositivos:", error);
+        console.error("Erro ao acessar dispositivos de audio:", error);
       }
     }
 
-    fetchDevices().catch((error) => {
-      console.error(
-        "Erro ao acessar dispositivos (fora do bloco try-catch):",
-        error,
-      );
+    fetchAudioDevices().catch((error) => {
+      console.error("Erro ao acessar dispositivos de audio:", error);
+    });
+    fetchVideoDevices().catch((error) => {
+      console.error("Erro ao acessar dispositivos de video:", error);
     });
 
     return () => {
@@ -86,6 +93,7 @@ export default function Prejoin() {
         videoStream.getTracks().forEach((track) => track.stop());
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -107,14 +115,15 @@ export default function Prejoin() {
           </div>
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-4">
+              <h2>Dispositivos</h2>
               <SelectInput options={audioDevices} />
               <SelectInput options={outputDevices} />
               <SelectInput options={videoDevices} />
             </div>
             {audioStream && (
               <div>
-                <h2>Áudio:</h2>
-                <audio ref={audioRef} autoPlay playsInline controls />
+                <h2>Audio</h2>
+                <audio ref={audioRef} autoPlay />
               </div>
             )}
             <button className="h-10 w-24 self-center rounded bg-indigo-500 text-white">
