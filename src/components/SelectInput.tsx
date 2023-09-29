@@ -1,15 +1,11 @@
 type SelectType = {
   options: { value: string; label: string }[];
+  onChange?: (event: React.ChangeEvent<HTMLSelectElement>) => void;
 };
 
-export default function SelectInput({ options }: SelectType) {
+export default function SelectInput({ options, ...rest }: SelectType) {
   return (
-    <select className="h-10 w-96 rounded text-center">
-      {
-        <option value="" selected disabled>
-          Selecione
-        </option>
-      }
+    <select className="h-10 w-96 rounded text-center" {...rest}>
       {options.map((option) => (
         <option key={option.value} value={option.value}>
           {option.label}
