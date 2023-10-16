@@ -16,9 +16,12 @@ export default function Prejoin() {
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [selectedAudioDevice, setSelectedAudioDevice] = useState<string | null>(
-    null,
-  );
+  const [selectedOutPutAudioDevice, setSelectedOutPutAudioDevice] = useState<
+    string | null
+  >(null);
+  const [selectedInputAudioDevice, setSelectedInputAudioDevice] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     const initializeVideoDevices = async () => {
@@ -53,25 +56,29 @@ export default function Prejoin() {
       if (audioRef.current) {
         audioRef.current.srcObject = audioDevicesData.deviceStream;
       }
-
-      if (selectedAudioDevice) {
+      false;
+      if (selectedInputAudioDevice) {
         const selectedAudioTrack = audioDevicesData.deviceStream
           .getAudioTracks()
-          .find((track) => track.label === selectedAudioDevice);
+          .find((track) => track.label === selectedInputAudioDevice);
         if (selectedAudioTrack) {
-          // Crie uma nova stream apenas com o dispositivo de áudio selecionado
           const audioStream = new MediaStream([selectedAudioTrack]);
           setAudioStream(audioStream);
           if (audioRef.current) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             audioRef.current.srcObject = audioStream;
           }
         }
       }
     };
 
-    initializeAudioDevices().catch(console.error);
+    initializeAudioDevices().catch(() => {
+      console.log("Erro ao acessar dispositivos de audio");
+    });
 
-    initializeVideoDevices().catch(console.error);
+    initializeVideoDevices().catch(() => {
+      console.log("Erro ao acessar dispositivos de video");
+    });
 
     return () => {
       if (audioStream) {
@@ -82,13 +89,50 @@ export default function Prejoin() {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedAudioDevice]);
+  }, []);
 
-  const handleAudioDeviceChange = (
+  useEffect(() => {
+    if (audioStream) {
+      console.log("audioStream", audioStream);
+      const selectedAudioTrack = audioStream
+        .getAudioTracks()
+        .find((track) => track.label === selectedInputAudioDevice);
+
+      if (selectedAudioTrack) {
+        //set audio stream to new audio track
+        const audioStream = new MediaStream([selectedAudioTrack]);
+        setAudioStream(audioStream);
+
+        //set audio stream to audio element
+        if (audioRef.current) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+          audioRef.current.srcObject = audioStream;
+        }
+      }
+    }
+  }, [selectedInputAudioDevice, audioStream]);
+
+  const handleAudioOutPutDeviceChange = (
     event: React.ChangeEvent<HTMLSelectElement>,
   ) => {
-    setSelectedAudioDevice(event.target.value);
+    setSelectedOutPutAudioDevice(event.target.value);
+
     console.log(event.target.value);
+  };
+
+  const handleAudioInputChange = (
+    event: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
+    setSelectedInputAudioDevice(event.target.value);
+  };
+
+  const playAudio = () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+    const audio = new Audio("/sound.mp3") as any;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    audio.setSinkId(selectedOutPutAudioDevice);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    audio.play().catch(console.error);
   };
 
   return (
@@ -113,17 +157,21 @@ export default function Prejoin() {
               <h2>Input devices</h2>
               <SelectInput
                 options={audioDevices}
-                onChange={handleAudioDeviceChange}
+                onChange={handleAudioInputChange}
               />
               <h2>Output Devices</h2>
-              <SelectInput options={outputDevices} />
+              <SelectInput
+                options={outputDevices}
+                onChange={handleAudioOutPutDeviceChange}
+              />
+              <button onClick={playAudio}>Test Audio</button>
               <h2>Video Devices</h2>
               <SelectInput options={videoDevices} />
             </div>
             {audioStream && (
               <div className="bg-red-600">
                 <h2>Audio</h2>
-                <audio ref={audioRef} autoPlay controls />
+                <audio ref={audioRef} autoPlay controls={true} />
               </div>
             )}
             <button className="h-10 w-24 self-center rounded bg-indigo-500 text-white">
