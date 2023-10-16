@@ -21,7 +21,7 @@ export default function Prejoin() {
   );
 
   useEffect(() => {
-    const initializeMediaDevices = async () => {
+    const initializeVideoDevices = async () => {
       try {
         const videoDevicesData = await fetchDevice({
           device: "video",
@@ -32,42 +32,46 @@ export default function Prejoin() {
         if (videoRef.current) {
           videoRef.current.srcObject = videoDevicesData.deviceStream;
         }
-
-        const outputDevicesData = await fetchDevice({
-          device: "audio",
-          output: true,
-        });
-        setOutputDevices(outputDevicesData.deviceInfo);
-
-        const audioDevicesData = await fetchDevice({
-          device: "audio",
-          output: false,
-        });
-        setAudioDevices(audioDevicesData.deviceInfo);
-        setAudioStream(audioDevicesData.deviceStream);
-        if (audioRef.current) {
-          audioRef.current.srcObject = audioDevicesData.deviceStream;
-        }
-
-        if (selectedAudioDevice) {
-          const selectedAudioTrack = audioDevicesData.deviceStream
-            .getAudioTracks()
-            .find((track) => track.label === selectedAudioDevice);
-          if (selectedAudioTrack) {
-            // Crie uma nova stream apenas com o dispositivo de áudio selecionado
-            const audioStream = new MediaStream([selectedAudioTrack]);
-            setAudioStream(audioStream);
-            if (audioRef.current) {
-              audioRef.current.srcObject = audioStream;
-            }
-          }
-        }
       } catch (error) {
-        console.error("Erro ao acessar dispositivos:", error);
+        console.error("Erro ao acessar dispositivos video:", error);
       }
     };
 
-    initializeMediaDevices().catch(console.error);
+    const initializeAudioDevices = async () => {
+      const outputDevicesData = await fetchDevice({
+        device: "audio",
+        output: true,
+      });
+      setOutputDevices(outputDevicesData.deviceInfo);
+
+      const audioDevicesData = await fetchDevice({
+        device: "audio",
+        output: false,
+      });
+      setAudioDevices(audioDevicesData.deviceInfo);
+      setAudioStream(audioDevicesData.deviceStream);
+      if (audioRef.current) {
+        audioRef.current.srcObject = audioDevicesData.deviceStream;
+      }
+
+      if (selectedAudioDevice) {
+        const selectedAudioTrack = audioDevicesData.deviceStream
+          .getAudioTracks()
+          .find((track) => track.label === selectedAudioDevice);
+        if (selectedAudioTrack) {
+          // Crie uma nova stream apenas com o dispositivo de áudio selecionado
+          const audioStream = new MediaStream([selectedAudioTrack]);
+          setAudioStream(audioStream);
+          if (audioRef.current) {
+            audioRef.current.srcObject = audioStream;
+          }
+        }
+      }
+    };
+
+    initializeAudioDevices().catch(console.error);
+
+    initializeVideoDevices().catch(console.error);
 
     return () => {
       if (audioStream) {
@@ -106,12 +110,14 @@ export default function Prejoin() {
           </div>
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-4">
-              <h2>Dispositivos</h2>
+              <h2>Input devices</h2>
               <SelectInput
                 options={audioDevices}
                 onChange={handleAudioDeviceChange}
               />
+              <h2>Output Devices</h2>
               <SelectInput options={outputDevices} />
+              <h2>Video Devices</h2>
               <SelectInput options={videoDevices} />
             </div>
             {audioStream && (
