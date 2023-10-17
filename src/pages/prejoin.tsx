@@ -127,8 +127,8 @@ export default function Prejoin() {
   };
 
   const playAudio = () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
-    const audio = new Audio("/sound.mp3") as any;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any,
+    const audio = new Audio("sound.mp3") as any;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     audio.setSinkId(selectedOutPutAudioDevice);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
