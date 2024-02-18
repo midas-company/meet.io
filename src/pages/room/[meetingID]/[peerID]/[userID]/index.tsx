@@ -25,23 +25,11 @@ export default function Room() {
   const [pcSender, setPcSender] = useState<RTCPeerConnection | null>(null);
   const [pcReceiver, setPcReceiver] = useState<RTCPeerConnection | null>(null);
 
-  // const pcSender = new RTCPeerConnection({
-  //   iceServers: [
-  //     {
-  //       urls: "stun:stun.l.google.com:19302",
-  //     },
-  //   ],
-  // });
-  // const pcReceiver = new RTCPeerConnection({
-  //   iceServers: [
-  //     {
-  //       urls: "stun:stun.l.google.com:19302",
-  //     },
-  //   ],
-  // });
+  const [isConnected, setIsConnected] = useState(false);
 
   const handleStartCall = () => {
     if (!pcReceiver || !pcSender) {
+      console.log("pcReceiver and pcSender is missing!");
       return;
     }
 
@@ -67,8 +55,10 @@ export default function Room() {
         }
         // you can use event listner so that you inform he is connected!
         pcSender.addEventListener("connectionstatechange", () => {
+          console.log(pcSender.connectionState);
           if (pcSender.connectionState === "connected") {
             console.log("connected!");
+            setIsConnected(true);
           }
         });
 
@@ -80,8 +70,6 @@ export default function Room() {
           .catch(console.log);
 
         pcReceiver.ontrack = (event) => {
-          console.log({ event });
-
           if (receiverVideo.current) {
             const media = event.streams[0];
             if (media) {
@@ -97,18 +85,10 @@ export default function Room() {
 
   useEffect(() => {
     const newPcSender = new RTCPeerConnection({
-      iceServers: [
-        {
-          urls: "stun:stun.l.google.com:19302",
-        },
-      ],
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
     });
     const newPcReceiver = new RTCPeerConnection({
-      iceServers: [
-        {
-          urls: "stun:stun.l.google.com:19302",
-        },
-      ],
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
     });
 
     setPcSender(newPcSender);
@@ -126,20 +106,15 @@ export default function Room() {
         if (event.candidate === null) {
           axios
             .post<Sdp>(
-              ` https://0bb1-177-55-229-207.ngrok-free.app/webrtc/sdp/m/${meetingID}/c/${userID}/p/${peerID}/s/true`,
+              `https://3578-177-55-229-207.ngrok-free.app/webrtc/sdp/m/${meetingID}/c/${userID}/p/${peerID}/s/true`,
               {
                 sdp: btoa(JSON.stringify(pcSender.localDescription)),
               },
             )
             .then((res) => {
-              console.log({ res });
-
               const sdp = JSON.parse(
                 atob(res.data.sdp),
               ) as RTCSessionDescriptionInit;
-
-              console.log({ sdp });
-
               pcSender
                 .setRemoteDescription(new RTCSessionDescription(sdp))
                 .catch(console.log);
@@ -148,25 +123,23 @@ export default function Room() {
         }
       };
     }
+  }, [meetingID, pcSender, peerID, userID]);
 
+  useEffect(() => {
     if (pcReceiver) {
       pcReceiver.onicecandidate = (event) => {
         if (event.candidate === null) {
           axios
             .post<Sdp>(
-              ` https://0bb1-177-55-229-207.ngrok-free.app/webrtc/sdp/m/${meetingID}/c/${userID}/p/${peerID}/s/false`,
+              `https://3578-177-55-229-207.ngrok-free.app/webrtc/sdp/m/${meetingID}/c/${userID}/p/${peerID}/s/false`,
               {
                 sdp: btoa(JSON.stringify(pcReceiver.localDescription)),
               },
             )
             .then((res) => {
-              console.log({ res });
-
               const sdp = JSON.parse(
                 atob(res.data.sdp),
               ) as RTCSessionDescriptionInit;
-
-              console.log({ sdp });
               pcReceiver
                 .setRemoteDescription(new RTCSessionDescription(sdp))
                 .catch(console.log);
@@ -175,8 +148,7 @@ export default function Room() {
         }
       };
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [meetingID, peerID, userID]);
+  }, [meetingID, pcReceiver, peerID, userID]);
 
   return (
     <>
@@ -190,12 +162,14 @@ export default function Room() {
         <p>meetingID: {meetingID}</p>
         <p>peerID: {peerID}</p>
         <p>userID: {userID}</p>
-        <button
-          className="rounded bg-indigo-400 px-10 py-1 text-white"
-          onClick={handleStartCall}
-        >
-          call
-        </button>
+        {!isConnected && (
+          <button
+            className="rounded bg-indigo-400 px-10 py-1 text-white"
+            onClick={handleStartCall}
+          >
+            call
+          </button>
+        )}
 
         <div className="flex items-center justify-center gap-2">
           <video
