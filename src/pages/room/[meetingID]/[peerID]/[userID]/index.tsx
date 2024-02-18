@@ -1,0 +1,219 @@
+"use client";
+
+import { useRouter } from "next/router";
+import Head from "next/head";
+import axios from "axios";
+import { useEffect, useRef, useState } from "react";
+
+type Sdp = {
+  sdp: string;
+};
+
+type Params = {
+  meetingID: string;
+  peerID: string;
+  userID: string;
+};
+
+export default function Room() {
+  const router = useRouter();
+  const { meetingID, peerID, userID } = router.query as Params;
+
+  const senderVideo = useRef<HTMLVideoElement>(null);
+  const receiverVideo = useRef<HTMLVideoElement>(null);
+
+  const [pcSender, setPcSender] = useState<RTCPeerConnection | null>(null);
+  const [pcReceiver, setPcReceiver] = useState<RTCPeerConnection | null>(null);
+
+  // const pcSender = new RTCPeerConnection({
+  //   iceServers: [
+  //     {
+  //       urls: "stun:stun.l.google.com:19302",
+  //     },
+  //   ],
+  // });
+  // const pcReceiver = new RTCPeerConnection({
+  //   iceServers: [
+  //     {
+  //       urls: "stun:stun.l.google.com:19302",
+  //     },
+  //   ],
+  // });
+
+  const handleStartCall = () => {
+    if (!pcReceiver || !pcSender) {
+      return;
+    }
+
+    // sender part of the call
+    navigator.mediaDevices
+      .getUserMedia({ video: true, audio: true })
+      .then((stream) => {
+        if (senderVideo.current) {
+          senderVideo.current.srcObject = stream;
+
+          const tracks = stream.getTracks();
+          tracks.forEach((_, i) => {
+            const mediaTrack = stream.getTracks()[i];
+            if (mediaTrack) {
+              pcSender.addTrack(mediaTrack);
+            }
+          });
+
+          pcSender
+            .createOffer()
+            .then((d) => pcSender.setLocalDescription(d))
+            .catch(console.log);
+        }
+        // you can use event listner so that you inform he is connected!
+        pcSender.addEventListener("connectionstatechange", () => {
+          if (pcSender.connectionState === "connected") {
+            console.log("connected!");
+          }
+        });
+
+        // receiver part of the call
+        pcReceiver.addTransceiver("video", { direction: "recvonly" });
+        pcReceiver
+          .createOffer()
+          .then((d) => pcReceiver.setLocalDescription(d))
+          .catch(console.log);
+
+        pcReceiver.ontrack = (event) => {
+          console.log({ event });
+
+          if (receiverVideo.current) {
+            const media = event.streams[0];
+            if (media) {
+              receiverVideo.current.srcObject = media;
+            }
+            receiverVideo.current.autoplay = true;
+            receiverVideo.current.controls = true;
+          }
+        };
+      })
+      .catch(console.log);
+  };
+
+  useEffect(() => {
+    const newPcSender = new RTCPeerConnection({
+      iceServers: [
+        {
+          urls: "stun:stun.l.google.com:19302",
+        },
+      ],
+    });
+    const newPcReceiver = new RTCPeerConnection({
+      iceServers: [
+        {
+          urls: "stun:stun.l.google.com:19302",
+        },
+      ],
+    });
+
+    setPcSender(newPcSender);
+    setPcReceiver(newPcReceiver);
+
+    return () => {
+      newPcSender.close();
+      newPcReceiver.close();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (pcSender) {
+      pcSender.onicecandidate = (event) => {
+        if (event.candidate === null) {
+          axios
+            .post<Sdp>(
+              ` https://0bb1-177-55-229-207.ngrok-free.app/webrtc/sdp/m/${meetingID}/c/${userID}/p/${peerID}/s/true`,
+              {
+                sdp: btoa(JSON.stringify(pcSender.localDescription)),
+              },
+            )
+            .then((res) => {
+              console.log({ res });
+
+              const sdp = JSON.parse(
+                atob(res.data.sdp),
+              ) as RTCSessionDescriptionInit;
+
+              console.log({ sdp });
+
+              pcSender
+                .setRemoteDescription(new RTCSessionDescription(sdp))
+                .catch(console.log);
+            })
+            .catch(console.log);
+        }
+      };
+    }
+
+    if (pcReceiver) {
+      pcReceiver.onicecandidate = (event) => {
+        if (event.candidate === null) {
+          axios
+            .post<Sdp>(
+              ` https://0bb1-177-55-229-207.ngrok-free.app/webrtc/sdp/m/${meetingID}/c/${userID}/p/${peerID}/s/false`,
+              {
+                sdp: btoa(JSON.stringify(pcReceiver.localDescription)),
+              },
+            )
+            .then((res) => {
+              console.log({ res });
+
+              const sdp = JSON.parse(
+                atob(res.data.sdp),
+              ) as RTCSessionDescriptionInit;
+
+              console.log({ sdp });
+              pcReceiver
+                .setRemoteDescription(new RTCSessionDescription(sdp))
+                .catch(console.log);
+            })
+            .catch(console.log);
+        }
+      };
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [meetingID, peerID, userID]);
+
+  return (
+    <>
+      <Head>
+        <title>Room</title>
+        <meta name="description" content="Generated by create-t3-app" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+
+      <main>
+        <p>meetingID: {meetingID}</p>
+        <p>peerID: {peerID}</p>
+        <p>userID: {userID}</p>
+        <button
+          className="rounded bg-indigo-400 px-10 py-1 text-white"
+          onClick={handleStartCall}
+        >
+          call
+        </button>
+
+        <div className="flex items-center justify-center gap-2">
+          <video
+            className="h-[500px] w-[500px]"
+            controls
+            muted
+            autoPlay
+            ref={senderVideo}
+          />
+          <video
+            className="h-[160px] w-[160px]"
+            controls
+            muted
+            autoPlay
+            ref={receiverVideo}
+          />
+        </div>
+      </main>
+    </>
+  );
+}
