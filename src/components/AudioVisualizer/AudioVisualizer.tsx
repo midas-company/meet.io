@@ -16,23 +16,17 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ audioData }) => {
     const context = canvas.getContext("2d");
     if (!context) return;
 
-    let x = 0;
-    const sliceWidth = (width * 1.0) / audioData.length;
+    const barHeight = 10; // Altura da barrinha
 
-    context.lineWidth = 2;
-    context.strokeStyle = "#161743";
     context.clearRect(0, 0, width, height);
-    context.beginPath();
-    context.moveTo(0, height / 2);
+    context.fillStyle = "#161743";
+
+    const x = 0;
 
     for (const item of audioData) {
-      const y = (item / 255.0) * height;
-      context.lineTo(x, y);
-      x += sliceWidth;
+      const barWidth = ((item - 100) / 255.0) * width;
+      context.fillRect(x, height - barHeight, barWidth, barHeight);
     }
-
-    context.lineTo(x, height / 2);
-    context.stroke();
   };
 
   useEffect(() => {
@@ -40,7 +34,7 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ audioData }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audioData]);
 
-  return <canvas width="500" height="500" ref={canvasRef} />;
+  return <canvas width="500" height="50" ref={canvasRef} />;
 };
 
 export default AudioVisualizer;

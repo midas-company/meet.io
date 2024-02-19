@@ -2,6 +2,7 @@ import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 import SelectInput from "~/components/SelectInput";
 import fetchDevice from "~/providers/fetchDevice";
+import AudioAnalyzer from "~/components/AudioVisualizer/AudioAnalyzer";
 
 type DeviceType = {
   label: string;
@@ -164,16 +165,17 @@ export default function Prejoin() {
                 options={outputDevices}
                 onChange={handleAudioOutPutDeviceChange}
               />
-              <button onClick={playAudio}>Test Audio</button>
               <h2>Video Devices</h2>
               <SelectInput options={videoDevices} />
             </div>
-            {audioStream && (
-              <div className="bg-red-600">
-                <h2>Audio</h2>
-                <audio ref={audioRef} autoPlay controls={true} />
-              </div>
-            )}
+            <div>
+              <button onClick={playAudio} className="mb-6">
+                Test Output Device
+              </button>
+
+              {audioStream && <AudioAnalyzer audio={audioStream} />}
+            </div>
+
             <button className="h-10 w-24 self-center rounded bg-indigo-500 text-white">
               Join
             </button>
