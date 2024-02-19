@@ -1,0 +1,185 @@
+import Head from "next/head";
+import { useEffect, useRef, useState } from "react";
+import SelectInput from "~/components/SelectInput";
+import fetchDevice from "~/providers/fetchDevice";
+
+type DeviceType = {
+  label: string;
+  value: string;
+};
+
+export default function Prejoin() {
+  const [audioDevices, setAudioDevices] = useState<DeviceType[]>([]);
+  const [outputDevices, setOutputDevices] = useState<DeviceType[]>([]);
+  const [videoDevices, setVideoDevices] = useState<DeviceType[]>([]);
+  const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
+  const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [selectedOutPutAudioDevice, setSelectedOutPutAudioDevice] = useState<
+    string | null
+  >(null);
+  const [selectedInputAudioDevice, setSelectedInputAudioDevice] = useState<
+    string | null
+  >(null);
+
+  useEffect(() => {
+    const initializeVideoDevices = async () => {
+      try {
+        const videoDevicesData = await fetchDevice({
+          device: "video",
+          output: false,
+        });
+        setVideoDevices(videoDevicesData.deviceInfo);
+        setVideoStream(videoDevicesData.deviceStream);
+        if (videoRef.current) {
+          videoRef.current.srcObject = videoDevicesData.deviceStream;
+        }
+      } catch (error) {
+        console.error("Erro ao acessar dispositivos video:", error);
+      }
+    };
+
+    const initializeAudioDevices = async () => {
+      const outputDevicesData = await fetchDevice({
+        device: "audio",
+        output: true,
+      });
+      setOutputDevices(outputDevicesData.deviceInfo);
+
+      const audioDevicesData = await fetchDevice({
+        device: "audio",
+        output: false,
+      });
+      setAudioDevices(audioDevicesData.deviceInfo);
+      setAudioStream(audioDevicesData.deviceStream);
+      if (audioRef.current) {
+        audioRef.current.srcObject = audioDevicesData.deviceStream;
+      }
+      false;
+      if (selectedInputAudioDevice) {
+        const selectedAudioTrack = audioDevicesData.deviceStream
+          .getAudioTracks()
+          .find((track) => track.label === selectedInputAudioDevice);
+        if (selectedAudioTrack) {
+          const audioStream = new MediaStream([selectedAudioTrack]);
+          setAudioStream(audioStream);
+          if (audioRef.current) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            audioRef.current.srcObject = audioStream;
+          }
+        }
+      }
+    };
+
+    initializeAudioDevices().catch(() => {
+      console.log("Erro ao acessar dispositivos de audio");
+    });
+
+    initializeVideoDevices().catch(() => {
+      console.log("Erro ao acessar dispositivos de video");
+    });
+
+    return () => {
+      if (audioStream) {
+        audioStream.getTracks().forEach((track) => track.stop());
+      }
+      if (videoStream) {
+        videoStream.getTracks().forEach((track) => track.stop());
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (audioStream) {
+      console.log("audioStream", audioStream);
+      const selectedAudioTrack = audioStream
+        .getAudioTracks()
+        .find((track) => track.label === selectedInputAudioDevice);
+
+      if (selectedAudioTrack) {
+        //set audio stream to new audio track
+        const audioStream = new MediaStream([selectedAudioTrack]);
+        setAudioStream(audioStream);
+
+        //set audio stream to audio element
+        if (audioRef.current) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+          audioRef.current.srcObject = audioStream;
+        }
+      }
+    }
+  }, [selectedInputAudioDevice, audioStream]);
+
+  const handleAudioOutPutDeviceChange = (
+    event: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
+    setSelectedOutPutAudioDevice(event.target.value);
+
+    console.log(event.target.value);
+  };
+
+  const handleAudioInputChange = (
+    event: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
+    setSelectedInputAudioDevice(event.target.value);
+  };
+
+  const playAudio = () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any,
+    const audio = new Audio("sound.mp3") as any;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    audio.setSinkId(selectedOutPutAudioDevice);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    audio.play().catch(console.error);
+  };
+
+  return (
+    <>
+      <Head>
+        <title>Prejoin</title>
+        <meta name="description" content="Generated by create-t3-app" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <main>
+        <div className="flex h-screen flex-col items-center justify-center gap-6">
+          <div className="min-w-96 h-96 border-2 border-solid border-black">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              className="h-full w-full"
+            />
+          </div>
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4">
+              <h2>Input devices</h2>
+              <SelectInput
+                options={audioDevices}
+                onChange={handleAudioInputChange}
+              />
+              <h2>Output Devices</h2>
+              <SelectInput
+                options={outputDevices}
+                onChange={handleAudioOutPutDeviceChange}
+              />
+              <button onClick={playAudio}>Test Audio</button>
+              <h2>Video Devices</h2>
+              <SelectInput options={videoDevices} />
+            </div>
+            {audioStream && (
+              <div className="bg-red-600">
+                <h2>Audio</h2>
+                <audio ref={audioRef} autoPlay controls={true} />
+              </div>
+            )}
+            <button className="h-10 w-24 self-center rounded bg-indigo-500 text-white">
+              Join
+            </button>
+          </div>
+        </div>
+      </main>
+    </>
+  );
+}
